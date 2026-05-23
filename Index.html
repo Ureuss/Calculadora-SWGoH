@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWGOH Holocron - Calculadora de Farmeo</title>
+    <style>
+        :root {
+            --bg-color: #0a0f14;
+            --panel-bg: rgba(16, 24, 32, 0.85);
+            --border-glow: #00f0ff;
+            --accent-green: #39ff14;
+            --text-main: #e0f7fa;
+            --text-muted: #8ab4f8;
+            --shadow-glow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow-glow), inset 0 0 20px rgba(0, 0, 0, 0.6);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px dashed rgba(0, 240, 255, 0.3);
+            padding-bottom: 15px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--border-glow);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            color: var(--border-glow);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 15px;
+            background: var(--border-glow);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            background: rgba(10, 20, 30, 0.7);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--border-glow);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 25px;
+            background: rgba(0, 240, 255, 0.05);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--border-glow);
+        }
+
+        .results-panel {
+            background: rgba(5, 15, 25, 0.6);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .results-panel .panel-title {
+            color: var(--accent-green);
+        }
+
+        .results-panel .panel-title::before {
+            background: var(--accent-green);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-item:last-of-type {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+        }
+
+        .result-value.highlight {
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 0 0 12px var(--border-glow);
+        }
+
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.4);
+            color: #ffb74d;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Holocrón de Datos: Calculadora de Farmeo</h1>
+        <p>Proyecciones probabilísticas de adquisición de fragmentos para SWGOH</p>
+    </header>
+
+    <div class="grid-layout">
+        <!-- Panel de Entradas -->
+        <div class="inputs-panel">
+            <div class="panel-title">Parámetros de Entrada</div>
+            
+            <div class="form-group">
+                <label for="currentShards">Fragmentos Actuales</label>
+                <input type="number" id="currentShards" min="0" max="330" value="0">
+            </div>
+
+            <div class="form-group">
+                <label for="targetShards">Fragmentos Objetivo</label>
+                <input type="number" id="targetShards" min="0" max="330" value="330">
+            </div>
+
+            <div class="form-group">
+                <label for="nodeType">Tipo de Nodo de Farmeo</label>
+                <select id="nodeType">
+                    <option value="hard_energy">Nodo Difícil (Energía Normal)</option>
+                    <option value="cantina">Nodo de Cantina</option>
+                </select>
+            </div>
+
+            <div id="hardNodeModifiers">
+                <div class="form-group">
+                    <label for="nodeRefreshes">Refrescos de Nodo Diarios (Cristales)</label>
+                    <input type="number" id="nodeRefreshes" min="0" max="10" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="energyRefreshes">Refrescos de Energía Diarios</label>
+                <input type="number" id="energyRefreshes" min="0" max="10" value="0">
+            </div>
+
+            <div class="form-group">
+                <label for="energyCost">Costo de Energía por Intento</label>
+                <input type="number" id="energyCost" min="6" max="20" value="16">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="isAccelerated" checked>
+                <label for="isAccelerated" style="margin-bottom: 0; cursor: pointer;">
+                    ¿Personaje Acelerado? (Drop x2)
+                </label>
+            </div>
+        </div>
+
+        <!-- Panel de Resultados -->
+        <div class="results-panel">
+            <div>
+                <div class="panel-title">Análisis de Simulación</div>
+                
+                <div class="result-item">
+                    <span class="result-label">Fragmentos Restantes:</span>
+                    <span class="result-value" id="shardsLeft">330</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Intentos Posibles por Día:</span>
+                    <span class="result-value" id="dailyAttempts">5</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Fragmentos Estimados / Día:</span>
+                    <span class="result-value" id="shardsPerDay">3.3</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Costo Diario de Cristales:</span>
+                    <span class="result-value" id="dailyCrystalCost">0</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="warning-box" id="energyWarning">
+                    Advertencia: No tienes suficiente energía diaria para cubrir todos los intentos deseados.
+                </div>
+
+                <div class="result-item" style="margin-top: 20px; border-top: 1px solid rgba(0,240,255,0.3); padding-top: 20px;">
+                    <span class="result-label" style="font-weight: bold; color: #fff;">TIEMPO ESTIMADO TOTAL:</span>
+                    <span class="result-value highlight" id="totalDays">100 días</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Inversión Total de Cristales:</span>
+                    <span class="result-value" id="totalCrystals" style="color: var(--border-glow);">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración y Constantes del Juego Original
+    const DROP_RATE = 0.3333; // ~33.3% verificado por la comunidad
+    
+    // Energía pasiva generada en 24h (1 punto cada 6 min = 240) + Bonus diarios fijos
+    const ENERGY_CONFIG = {
+        hard_energy: { passive: 240, bonus: 135, defaultCost: 16, maxBaseAttempts: 5 },
+        cantina:     { passive: 120, bonus: 45,  defaultCost: 12, maxBaseAttempts: Infinity }
+    };
+
+    // Capas del DOM
+    const inputs = [
+        'currentShards', 'targetShards', 'nodeType', 
+        'nodeRefreshes', 'energyRefreshes', 'energyCost', 'isAccelerated'
+    ].reduce((acc, id) => ({ ...acc, [id]: document.getElementById(id) }), {});
+
+    const outputs = ['shardsLeft', 'dailyAttempts', 'shardsPerDay', 'dailyCrystalCost', 'totalDays', 'totalCrystals', 'energyWarning']
+        .reduce((acc, id) => ({ ...acc, [id]: document.getElementById(id) }), {});
+
+    // Control dinámico de la interfaz
+    inputs.nodeType.addEventListener('change', (e) => {
+        const type = e.target.value;
+        if (type === 'cantina') {
+            document.getElementById('hardNodeModifiers').style.display = 'none';
+            inputs.energyCost.value = ENERGY_CONFIG.cantina.defaultCost;
+            inputs.nodeRefreshes.value = 0;
+        } else {
+            document.getElementById('hardNodeModifiers').style.display = 'block';
+            inputs.energyCost.value = ENERGY_CONFIG.hard_energy.defaultCost;
+        }
+        calculateFarm();
+    });
+
+    // Escuchar cambios en cualquier input para recalcular en tiempo real
+    Object.values(inputs).forEach(input => input.addEventListener('input', calculateFarm));
+
+    // Lógica matemática core de la calculadora
+    function calculateFarm() {
+        // 1. Sanitización de datos de entrada básicos
+        const current = Math.max(0, parseInt(inputs.currentShards.value) || 0);
+        const target = Math.max(0, parseInt(inputs.targetShards.value) || 0);
+        const type = inputs.nodeType.value;
+        const nodeRefreshes = Math.max(0, parseInt(inputs.nodeRefreshes.value) || 0);
+        const energyRefreshes = Math.max(0, parseInt(inputs.energyRefreshes.value) || 0);
+        const energyCost = Math.max(1, parseInt(inputs.energyCost.value) || 1);
+        const isAccelerated = inputs.isAccelerated.checked;
+
+        // 2. Cálculo de fragmentos restantes
+        const shardsLeft = Math.max(0, target - current);
+        outputs.shardsLeft.textContent = shardsLeft;
+
+        if (shardsLeft === 0) {
+            outputs.dailyAttempts.textContent = 0;
+            outputs.shardsPerDay.textContent = 0;
+            outputs.dailyCrystalCost.textContent = 0;
+            outputs.totalDays.textContent = "0 días";
+            outputs.totalCrystals.textContent = 0;
+            outputs.energyWarning.style.display = 'none';
+            return;
+        }
+
+        // 3. Gestión del pool de Energía Diaria Disponible
+        const config = ENERGY_CONFIG[type];
+        const totalDailyEnergy = config.passive + config.bonus + (energyRefreshes * 120);
+
+        // 4. Determinar intentos máximos según restricciones de nodos y energía
+        let desiredAttempts = 0;
+        if (type === 'hard_energy') {
+            // Cada refresco de nodo difícil añade 5 intentos
+            desiredAttempts = config.maxBaseAttempts + (nodeRefreshes * 5);
+        } else {
+            // En cantina los intentos están limitados únicamente por la energía disponible
+            desiredAttempts = Math.floor(totalDailyEnergy / energyCost);
+        }
+
+        // Validar si la energía disponible limita los intentos deseados en nodo difícil
+        const energyRequiredForDesired = desiredAttempts * energyCost;
+        let finalAttempts = desiredAttempts;
+        
+        if (energyRequiredForDesired > totalDailyEnergy) {
+            finalAttempts = Math.floor(totalDailyEnergy / energyCost);
+            outputs.energyWarning.style.display = 'block';
+        } else {
+            outputs.energyWarning.style.display = 'none';
+        }
+
+        outputs.dailyAttempts.textContent = finalAttempts;
+
+        // 5. Cálculo del rendimiento de fragmentos diarios (Aplicando aceleración drop x2)
+        const dropMultiplier = isAccelerated ? 2 : 1;
+        const estimatedShardsPerDay = finalAttempts * DROP_RATE * dropMultiplier;
+        outputs.shardsPerDay.textContent = estimatedShardsPerDay.toFixed(2);
+
+        // 6. Curva de Costo de Cristales (Escalonamiento real de SWGOH)
+        let dailyCrystalCost = 0;
+
+        // Costo escalonado de Refrescos de Energía Normal vs Cantina
+        for (let i = 1; i <= energyRefreshes; i++) {
+            if (type === 'hard_energy') {
+                if (i <= 3) dailyCrystalCost += 50;
+                else if (i <= 6) dailyCrystalCost += 100;
+                else dailyCrystalCost += 200;
+            } else { // Cantina
+                if (i <= 3) dailyCrystalCost += 100;
+                else if (i <= 6) dailyCrystalCost += 200;
+                else dailyCrystalCost += 400;
+            }
+        }
+
+        // Costo escalonado de Refrescos de Nodo (Solo Nodos Difíciles)
+        if (type === 'hard_energy') {
+            for (let i = 1; i <= nodeRefreshes; i++) {
+                if (i <= 1) dailyCrystalCost += 25;
+                else if (i <= 3) dailyCrystalCost += 50;
+                else dailyCrystalCost += 100;
+            }
+        }
+
+        outputs.dailyCrystalCost.textContent = dailyCrystalCost;
+
+        // 7. Proyección del tiempo final (Evitando divisiones por cero)
+        if (estimatedShardsPerDay <= 0) {
+            outputs.totalDays.textContent = "Infinito (Aumenta energía/intentos)";
+            outputs.totalCrystals.textContent = "-";
+            return;
+        }
+
+        const totalDays = Math.ceil(shardsLeft / estimatedShardsPerDay);
+        outputs.totalDays.textContent = `${totalDays} ${totalDays === 1 ? 'día' : 'días'}`;
+        
+        // Costo total de la inversión en cristales
+        outputs.totalCrystals.textContent = dailyCrystalCost * totalDays;
+    }
+
+    // Inicializar cálculos al cargar el documento
+    calculateFarm();
+</script>
+
+</body>
+</html>
